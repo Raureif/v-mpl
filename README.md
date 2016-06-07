@@ -1,6 +1,6 @@
-# Viki source files under MPL license
+# Viki source files under MPL 2.0 license
 
-Our Viki reader app for Wikipedia uses code from these projects published under the [Mozilla Public License Version 2.0](https://www.mozilla.org/en-US/MPL/2.0/):
+Our [Viki reader app for Wikipedia](http://viki-app.com) uses code from these projects published under the [Mozilla Public License Version 2.0](https://www.mozilla.org/en-US/MPL/2.0/):
 
 - [Mozilla Firefox for iOS](https://github.com/mozilla/firefox-ios)
 
