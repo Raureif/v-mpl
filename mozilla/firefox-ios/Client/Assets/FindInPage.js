@@ -6,8 +6,8 @@
 "use strict";
 
 var DEBUG_ENABLED = false;
-var MATCH_HIGHLIGHT_ACTIVE = "#f19750";
-var MATCH_HIGHLIGHT_INACTIVE = "#ffde49";
+var MATCH_HIGHLIGHT_ACTIVE_CLASSNAME = "viki-searchresult--active";
+var MATCH_HIGHLIGHT_INACTIVE_CLASSNAME = "viki-searchresult";
 var SCROLL_INTERVAL_INCREMENT = 5;
 var SCROLL_INTERVAL_DURATION = 400;
 var SCROLL_OFFSET = 60;
@@ -109,9 +109,10 @@ function flattenNode(node) {
 
 function clearHighlights() {
   if (highlightSpans.length > 0) {
-    for (var span of highlightSpans) {
-      flattenNode(span);
+    for (var i = highlightSpans.length - 1; i >= 0; i--) {
+      flattenNode(highlightSpans[i]);
     }
+
     highlightSpans = [];
   }
 
@@ -131,7 +132,7 @@ function highlightAllMatches(text) {
   var range = document.createRange();
   var matches = findMatches(text);
   var highlightTemplate = document.createElement("span");
-  highlightTemplate.style.backgroundColor = MATCH_HIGHLIGHT_INACTIVE;
+  highlightTemplate.className = MATCH_HIGHLIGHT_INACTIVE_CLASSNAME;
 
   // If there are multiple matches in the same node, inserting a highlight span before other matches
   // in that node will invalidate other matches since the node itself changes. By iterating through
@@ -155,9 +156,9 @@ function getIDForRect(rect) {
 }
 
 function updateActiveHighlight() {
-  // Reset the color of the previous highlight.
+  // Reset the class of the previous highlight.
   if (activeHighlightSpan) {
-    activeHighlightSpan.style.backgroundColor = MATCH_HIGHLIGHT_INACTIVE;
+    activeHighlightSpan.className = MATCH_HIGHLIGHT_INACTIVE_CLASSNAME;
   }
 
   if (!highlightSpans.length) {
@@ -165,7 +166,7 @@ function updateActiveHighlight() {
   }
 
   activeHighlightSpan = highlightSpans[activeIndex];
-  activeHighlightSpan.style.backgroundColor = MATCH_HIGHLIGHT_ACTIVE;
+  activeHighlightSpan.className += " " + MATCH_HIGHLIGHT_ACTIVE_CLASSNAME;
 
   // Find the position of the element centered on the screen, then scroll to it.
   var rect = activeHighlightSpan.getBoundingClientRect();
@@ -189,7 +190,7 @@ function scrollToSelection(left, top, duration) {
     time += SCROLL_INTERVAL_INCREMENT;
     if (time >= duration) {
       clearInterval(scrollInterval);
-    }                 
+    }
   }, SCROLL_INTERVAL_INCREMENT);
 }
 
@@ -242,25 +243,25 @@ function updateSearch(text) {
 }
 
 
-if (!window.__firefox__) {
-  window.__firefox__ = {};
+if (!window.Viki) {
+  window.Viki = {};
 }
 
-window.__firefox__.find = function (text) {
+window.Viki.find = function (text) {
   updateSearch(text);
 };
 
-window.__firefox__.findNext = function (text) {
+window.Viki.findNext = function (text) {
   activeIndex++;
   updateSearch(text);
 };
 
-window.__firefox__.findPrevious = function (text) {
+window.Viki.findPrevious = function (text) {
   activeIndex--;
   updateSearch(text);
 };
 
-window.__firefox__.findDone = function () {
+window.Viki.findDone = function () {
   clearHighlights();
   lastSearch = null;
 };
