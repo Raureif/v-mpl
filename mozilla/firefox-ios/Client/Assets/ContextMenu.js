@@ -103,6 +103,7 @@ addEventListener("touchstart", function (event) {
   element.addEventListener("touchend", handleTouchEnd);
   element.addEventListener("touchmove", handleTouchMove);
 
+  var image;
   do {
     if (!data.link && element.localName === "a") {
       data.link = element.href;
@@ -110,16 +111,18 @@ addEventListener("touchstart", function (event) {
       // The web view still shows the tap highlight after clicking an element,
       // so add a delay before showing the long press highlight to avoid
       // the highlight flashing twice.
-      var linkElement = element;
+      var highlightElement = image === undefined ? element : image;
       setTimeout(function () {
         if (longPressTimeout) {
-          createHighlightOverlay(linkElement);
+          createHighlightOverlay(highlightElement);
         }
       }, 100);
+
     }
 
     if (!data.image && element.localName === "img") {
       data.image = element.src;
+      image = element;
     }
 
     element = element.parentElement;
