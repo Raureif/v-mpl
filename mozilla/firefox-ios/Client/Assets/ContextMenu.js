@@ -67,7 +67,8 @@ function createHighlightOverlay(element) {
 
 function handleTouchMove(event) {
   if (longPressTimeout) {
-       var { screenX, screenY } = event.touches[0];
+       var screenX = event.touches[0][0];
+       var screenY = event.touches[0][1];
         // Cancel the context menu if finger has moved beyond the maximum allowed distance.
        if (Math.abs(touchDownX - screenX) > MAX_RADIUS || Math.abs(touchDownY - screenY) > MAX_RADIUS) {
          cancel();
