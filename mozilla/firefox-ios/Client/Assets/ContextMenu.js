@@ -32,11 +32,13 @@ function createHighlightOverlay(element) {
   // without worrying about overlapping opacities for each child.
   highlightDiv = document.createElement("div");
   highlightDiv.style.pointerEvents = "none";
-  highlightDiv.style.top = "0px";
-  highlightDiv.style.left = "0px";
+  highlightDiv.style.top = "0";
+  highlightDiv.style.left = "0";
   highlightDiv.style.position = "absolute";
-  highlightDiv.style.opacity = 0.1;
   highlightDiv.style.zIndex = 99999;
+
+  highlightDiv.className = "viki-link-overlay";
+
   document.body.appendChild(highlightDiv);
 
   var rects = element.getClientRects();
@@ -45,20 +47,19 @@ function createHighlightOverlay(element) {
     var rectDiv = document.createElement("div");
     var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
     var scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft;
-    var top = rect.top + scrollTop - 2.5;
-    var left = rect.left + scrollLeft - 2.5;
+    var top = rect.top + scrollTop;
+    var left = rect.left + scrollLeft;
 
     // These styles are as close as possible to the default highlight style used
     // by the web view.
-    rectDiv.style.top = top + "px";
-    rectDiv.style.left = left + "px";
-    rectDiv.style.width = rect.width + "px";
-    rectDiv.style.height = rect.height + "px";
+    rectDiv.style.top = top - 2.5 + "px";
+    rectDiv.style.left = left - 2.5 + "px";
+    rectDiv.style.width = rect.width + 5 + "px";
+    rectDiv.style.height = rect.height + 5 + "px";
     rectDiv.style.position = "absolute";
-    rectDiv.style.backgroundColor = "#000";
-    rectDiv.style.borderRadius = "2px";
-    rectDiv.style.padding = "2.5px";
     rectDiv.style.pointerEvents = "none";
+
+    rectDiv.className = "viki-link-overlay__item";
 
     highlightDiv.appendChild(rectDiv);
   }
