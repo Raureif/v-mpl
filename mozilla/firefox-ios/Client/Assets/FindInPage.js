@@ -3,34 +3,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+(function() {
 "use strict";
 
-const MAXIMUM_HIGHLIGHT_COUNT = 500;
-const SCROLL_OFFSET_Y = 40;
-const SCROLL_DURATION = 100;
+var MAXIMUM_HIGHLIGHT_COUNT = 30000;
+var SCROLL_OFFSET_Y = 60;
+var SCROLL_DURATION = 400;
 
-const HIGHLIGHT_CLASS_NAME = "__firefox__find-highlight";
-const HIGHLIGHT_CLASS_NAME_ACTIVE = "__firefox__find-highlight-active";
-
-const HIGHLIGHT_COLOR = "#ffde49";
-const HIGHLIGHT_COLOR_ACTIVE = "#f19750";
-
-// IMPORTANT!!!: If this CSS is ever changed, the sha256-base64
-// hash in Client/Frontend/Reader/ReaderModeHandlers.swift will
-// also need updated. The value of `ReaderModeStyleHash` in that
-// file represents the sha256-base64 hash of the `HIGHLIGHT_CSS`.
-const HIGHLIGHT_CSS =
-`.${HIGHLIGHT_CLASS_NAME} {
-  color: #000;
-  background-color: ${HIGHLIGHT_COLOR};
-  border-radius: 1px;
-  box-shadow: 0 0 0 2px ${HIGHLIGHT_COLOR};
-  transition: all ${SCROLL_DURATION}ms ease ${SCROLL_DURATION}ms;
-}
-.${HIGHLIGHT_CLASS_NAME}.${HIGHLIGHT_CLASS_NAME_ACTIVE} {
-  background-color: ${HIGHLIGHT_COLOR_ACTIVE};
-  box-shadow: 0 0 0 4px ${HIGHLIGHT_COLOR_ACTIVE},0 1px 3px 3px rgba(0,0,0,.75);
-}`;
+var HIGHLIGHT_CLASS_NAME = "viki-searchresult";
+var HIGHLIGHT_CLASS_NAME_ACTIVE = "viki-searchresult--active";
 
 var lastEscapedQuery = "";
 var lastFindOperation = null;
@@ -42,15 +23,15 @@ var highlightSpan = document.createElement("span");
 highlightSpan.className = HIGHLIGHT_CLASS_NAME;
 
 var styleElement = document.createElement("style");
-styleElement.innerHTML = HIGHLIGHT_CSS;
 
 function find(query) {
-  let trimmedQuery = query.trim();
+  var trimmedQuery = query.trim();
 
   // If the trimmed query is empty, use it instead of the escaped
   // query to prevent searching for nothing but whitepsace.
-  let escapedQuery = !trimmedQuery ? trimmedQuery : query.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+  var escapedQuery = !trimmedQuery ? trimmedQuery : query.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
   if (escapedQuery === lastEscapedQuery) {
+    webkit.messageHandlers.findInPageHandler.postMessage({ currentResult: 0, totalResults: 0 });
     return;
   }
 
@@ -67,11 +48,11 @@ function find(query) {
     return;
   }
 
-  let queryRegExp = new RegExp("(" + escapedQuery + ")", "gi");
+  var queryRegExp = new RegExp("(" + escapedQuery + ")", "gi");
 
   lastFindOperation = getMatchingNodeReplacements(queryRegExp, function(replacements, highlights) {
-    let replacement;
-    for (let i = 0, length = replacements.length; i < length; i++) {
+    var replacement;
+    for (var i = 0, length = replacements.length; i < length; i++) {
       replacement = replacements[i];
 
       replacement.originalNode.replaceWith(replacement.replacementFragment);
@@ -82,7 +63,7 @@ function find(query) {
     lastHighlights = highlights;
     activeHighlightIndex = -1;
 
-    let totalResults = highlights.length;
+    var totalResults = highlights.length;
     webkit.messageHandlers.findInPageHandler.postMessage({ totalResults: totalResults });
 
     findNext();
@@ -115,11 +96,11 @@ function clear() {
     return;
   }
 
-  let replacements = lastReplacements;
-  let highlights = lastHighlights;
+  var replacements = lastReplacements;
+  var highlights = lastHighlights;
 
-  let highlight;
-  for (let i = 0, length = highlights.length; i < length; i++) {
+  var highlight;
+  for (var i = 0, length = highlights.length; i < length; i++) {
     highlight = highlights[i];
 
     removeHighlight(highlight);
@@ -135,7 +116,7 @@ function updateActiveHighlight() {
     document.body.appendChild(styleElement);
   }
 
-  let lastActiveHighlight = document.querySelector("." + HIGHLIGHT_CLASS_NAME_ACTIVE);
+  var lastActiveHighlight = document.querySelector("." + HIGHLIGHT_CLASS_NAME_ACTIVE);
   if (lastActiveHighlight) {
     lastActiveHighlight.className = HIGHLIGHT_CLASS_NAME;
   }
@@ -144,7 +125,7 @@ function updateActiveHighlight() {
     return;
   }
 
-  let activeHighlight = lastHighlights[activeHighlightIndex];
+  var activeHighlight = lastHighlights[activeHighlightIndex];
   if (activeHighlight) {
     activeHighlight.className = HIGHLIGHT_CLASS_NAME + " " + HIGHLIGHT_CLASS_NAME_ACTIVE;
     scrollToElement(activeHighlight, SCROLL_DURATION);
@@ -156,7 +137,7 @@ function updateActiveHighlight() {
 }
 
 function removeHighlight(highlight) {
-  let parent = highlight.parentNode;
+  var parent = highlight.parentNode;
   if (parent) {
     while (highlight.firstChild) {
       parent.insertBefore(highlight.firstChild, highlight);
@@ -168,10 +149,10 @@ function removeHighlight(highlight) {
 }
 
 function asyncTextNodeWalker(iterator) {
-  let operation = new Operation();
-  let walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+  var operation = new Operation();
+  var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
 
-  let timeout = setTimeout(function() {
+  var timeout = setTimeout(function() {
     chunkedLoop(function() { return walker.nextNode(); }, function(node) {
       if (operation.cancelled) {
         return false;
@@ -192,32 +173,32 @@ function asyncTextNodeWalker(iterator) {
 }
 
 function getMatchingNodeReplacements(regExp, callback) {
-  let replacements = [];
-  let highlights = [];
-  let isMaximumHighlightCount = false;
+  var replacements = [];
+  var highlights = [];
+  var isMaximumHighlightCount = false;
 
-  let operation = asyncTextNodeWalker(function(originalNode) {
+  var operation = asyncTextNodeWalker(function(originalNode) {
     if (!isTextNodeVisible(originalNode) || originalNode.parentElement.nodeName === "IFRAME") {
       return;
     }
 
-    let originalTextContent = originalNode.textContent;
-    let lastIndex = 0;
-    let replacementFragment = document.createDocumentFragment();
-    let hasReplacement = false;
-    let match;
+    var originalTextContent = originalNode.textContent;
+    var lastIndex = 0;
+    var replacementFragment = document.createDocumentFragment();
+    var hasReplacement = false;
+    var match;
 
     while ((match = regExp.exec(originalTextContent))) {
-      let matchTextContent = match[0];
+      var matchTextContent = match[0];
 
       // Add any text before this match.
       if (match.index > 0) {
-        let leadingSubstring = originalTextContent.substring(lastIndex, match.index);
+        var leadingSubstring = originalTextContent.substring(lastIndex, match.index);
         replacementFragment.appendChild(document.createTextNode(leadingSubstring));
       }
 
       // Add element for this match.
-      let element = highlightSpan.cloneNode(false);
+      var element = highlightSpan.cloneNode(false);
       element.textContent = matchTextContent;
       replacementFragment.appendChild(element);
       highlights.push(element);
@@ -234,7 +215,7 @@ function getMatchingNodeReplacements(regExp, callback) {
     if (hasReplacement) {
       // Add any text after the matches.
       if (lastIndex < originalTextContent.length) {
-        let trailingSubstring = originalTextContent.substring(lastIndex, originalTextContent.length);
+        var trailingSubstring = originalTextContent.substring(lastIndex, originalTextContent.length);
         replacementFragment.appendChild(document.createTextNode(trailingSubstring));
       }
 
@@ -264,8 +245,8 @@ function chunkedLoop(condition, iterator, chunkSize) {
     setTimeout(doChunk, 0);
 
     function doChunk() {
-      let argument;
-      for (let i = 0; i < chunkSize; i++) {
+      var argument;
+      for (var i = 0; i < chunkSize; i++) {
         argument = condition();
         if (!argument || iterator(argument) === false) {
           resolve();
@@ -279,29 +260,32 @@ function chunkedLoop(condition, iterator, chunkSize) {
 }
 
 function scrollToElement(element, duration) {
-  let rect = element.getBoundingClientRect();
+  var rect = element.getBoundingClientRect();
 
-  let targetX = clamp(rect.left + window.scrollX - window.innerWidth / 2, 0, document.body.scrollWidth);
-  let targetY = clamp(SCROLL_OFFSET_Y + rect.top + window.scrollY - window.innerHeight / 2, 0, document.body.scrollHeight);
+  var targetX = clamp(rect.left + window.scrollX - window.innerWidth / 2, 0, document.body.scrollWidth);
+  var targetY = clamp(SCROLL_OFFSET_Y + rect.top + window.scrollY - window.innerHeight / 2, 0, document.body.scrollHeight);
 
-  let startX = window.scrollX;
-  let startY = window.scrollY;
+  var startX = window.scrollX;
+  var startY = window.scrollY;
 
-  let deltaX = targetX - startX;
-  let deltaY = targetY - startY;
+  var deltaX = targetX - startX;
+  var deltaY = targetY - startY;
 
-  let startTimestamp;
+  var startTimestamp;
 
   function step(timestamp) {
     if (!startTimestamp) {
       startTimestamp = timestamp;
     }
 
-    let time = timestamp - startTimestamp;
-    let percent = Math.min(time / duration, 1);
+    var time = timestamp - startTimestamp;
+    var percent = Math.min(time / duration, 1);
 
-    let x = startX + deltaX * percent;
-    let y = startY + deltaY * percent;
+    // var x = startX + deltaX * percent;
+    // var y = startY + deltaY * percent;
+
+    var x = easeOutCubic(time, startX, deltaX, duration);
+    var y = easeOutCubic(time, startY, deltaY, duration);
 
     window.scrollTo(x, y);
 
@@ -313,8 +297,12 @@ function scrollToElement(element, duration) {
   requestAnimationFrame(step);
 }
 
+function easeOutCubic(currentTime, startValue, changeInValue, duration) {
+  return changeInValue * (Math.pow(currentTime / duration - 1, 3) + 1) + startValue;
+}
+
 function isTextNodeVisible(textNode) {
-  let element = textNode.parentElement;
+  var element = textNode.parentElement;
   if (!element) {
     return false;
   }
@@ -350,30 +338,32 @@ Operation.prototype.complete = function() {
   }
 };
 
-Object.defineProperty(window.__firefox__, "find", {
+Object.defineProperty(window.Viki, "find", {
   enumerable: false,
   configurable: false,
   writable: false,
   value: find
 });
 
-Object.defineProperty(window.__firefox__, "findNext", {
+Object.defineProperty(window.Viki, "findNext", {
   enumerable: false,
   configurable: false,
   writable: false,
   value: findNext
 });
 
-Object.defineProperty(window.__firefox__, "findPrevious", {
+Object.defineProperty(window.Viki, "findPrevious", {
   enumerable: false,
   configurable: false,
   writable: false,
   value: findPrevious
 });
 
-Object.defineProperty(window.__firefox__, "findDone", {
+Object.defineProperty(window.Viki, "findDone", {
   enumerable: false,
   configurable: false,
   writable: false,
   value: findDone
 });
+}) ();
+
